@@ -28,4 +28,3 @@ Route::resource('/albums', AlbumController::class);
 Route::get('/albums', [AlbumController::class, 'index'])->name('albums.index');
 Route::get('/albums/{album}', [AlbumController::class, 'show'])->name('album.show');
 Route::get('/albums/create', [AlbumController::class, 'create'])->name('album.create');
-Route::delete('/albums/{album}', [AlbumController::class, 'delete']);

@@ -15,25 +15,20 @@ class AlbumController extends Controller
      */
     public function index(Request $request)
     {
-        //
-        $sql = "SELECT * FROM albums WHERE 1=1";
-        
-        $where = [];
+        $qb = DB::table('albums')->orderBy('id','DESC');
         
         if($request->has('id')){
-            $where['id'] = $request->get('id');
-            $sql.=" AND id=:id";
+            $qb->where('id',$request->input('id'));
+        }
+
+        if($request->has('album_name')){
+            $qb->where('album_name','like','%'.$request->input('album_name').'%');
         }
         
-        if($request->has('album_name')){
-            $where['album_name'] = $request->get('album_name');
-            $sql.=" AND album_name=:album_name";
-        }
+        $albums = $qb->get();
 
-        $sql .= ' ORDER BY id DESC';
+        return view('albums.albums', compact('albums'));
 
-        $albums = DB::select($sql,$where);
-        return view('albums.albums', ['albums'=>$albums]);
     }
 
     /**
@@ -54,14 +49,17 @@ class AlbumController extends Controller
      */
     public function store(Request $request)
     {
-        $data = request()->only(['albumname','albumdescription']);
-        $data['user_id'] = 1;
-        $data['album_thumb'] = 'https://designshack.net/wp-content/uploads/placeholder-image.png';
-        $sql = 'INSERT INTO albums (album_name, album_description, user_id, album_thumb) ';
-        $sql .= 'VALUES(:albumname, :albumdescription, :user_id, :album_thumb) ';
-        $res = DB::insert($sql, $data);
-
-        $mess = $res ? 'Album '.$data['albumname'].' created' : 'Error creating album';
+        $res = DB::table('albums')->insert(
+            [
+                'album_name' => request()->input('albumname'),
+                'album_description' => request()->input('albumdescription'),
+                'user_id' => 1,
+                'album_thumb' => 'https://designshack.net/wp-content/uploads/placeholder-image.png'
+            ]
+        );
+        
+        $name = request()->input('albumname');
+        $mess = $res ? 'Album '.$name.' created' : 'Error creating album';
 
         session()->flash('message',$mess);
         return redirect()->route('albums.index');
@@ -101,12 +99,13 @@ class AlbumController extends Controller
      */
     public function update(Request $request, Album $album)
     {
-        $data = request()->only(['albumname','albumdescription']);
-        // dd($data);
-        $data['id'] = $album->id;
-        $sql = ' UPDATE albums SET album_name=:albumname, album_description=:albumdescription';
-        $sql .= ' WHERE id=:id';
-        $res = DB::update($sql,$data);
+        $res = DB::table('albums')->where('id',$album->id)
+        ->update(
+            [
+                'album_name' => request()->input('albumname'),
+                'album_description' => request()->input('albumdescription')
+            ]
+        );
 
         $mess = $res ? 'Album '.$album->id.' updated' : 'Error updating album';
 
@@ -122,17 +121,8 @@ class AlbumController extends Controller
      */
     public function destroy(Album $album)
     {
-        $sql = 'DELETE FROM albums WHERE id=:id';
-        DB::delete($sql,['id'=>$album->id]);
-    }
-
-    /**
-     * TEST DELETE
-     */
-    public function delete(int $album)
-    {
-        $sql = 'DELETE FROM albums WHERE id=:id';
-        return  DB::delete($sql, ['id' => $album]);
+        $res = DB::table('albums')->where('id',$album->id)->delete();
+        return $res;
     }
 
 }
