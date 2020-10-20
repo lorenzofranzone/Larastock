@@ -15,7 +15,7 @@ class AlbumController extends Controller
      */
     public function index(Request $request)
     {
-        $qb = DB::table('albums')->orderBy('id','DESC');
+        $qb = Album::orderBy('id','DESC');
         
         if($request->has('id')){
             $qb->where('id',$request->input('id'));
@@ -49,15 +49,24 @@ class AlbumController extends Controller
      */
     public function store(Request $request)
     {
-        $res = DB::table('albums')->insert(
-            [
-                'album_name' => request()->input('albumname'),
-                'album_description' => request()->input('albumdescription'),
-                'user_id' => 1,
-                'album_thumb' => 'https://designshack.net/wp-content/uploads/placeholder-image.png'
-            ]
-        );
+        // METODO 1 con protected $fillable nel Model
+        // $res = Album::create(
+        //     [
+        //         'album_name' => request()->input('albumname'),
+        //         'album_description' => request()->input('albumdescription'),
+        //         'user_id' => 1,
+        //         'album_thumb' => 'https://designshack.net/wp-content/uploads/placeholder-image.png'
+        //     ]
+        // );
+
+        $album = new Album();
+        $album->album_name = request()->input('albumname');
+        $album->album_description = request()->input('albumdescription');
+        $album->user_id = 1;
+        $album->album_thumb = 'https://designshack.net/wp-content/uploads/placeholder-image.png';
+        $res = $album->save();
         
+        // Valido per entrambi
         $name = request()->input('albumname');
         $mess = $res ? 'Album '.$name.' created' : 'Error creating album';
 
@@ -85,9 +94,8 @@ class AlbumController extends Controller
      */
     public function edit($id)
     {
-        $sql = 'SELECT album_name, album_description, id FROM albums WHERE id=:id';
-        $album = DB::select($sql,['id'=>$id]);
-        return view('albums.edit')->withAlbum($album[0]);
+        $album = Album::find($id);
+        return view('albums.edit')->with('album', $album);
     }
 
     /**
@@ -99,13 +107,21 @@ class AlbumController extends Controller
      */
     public function update(Request $request, Album $album)
     {
-        $res = DB::table('albums')->where('id',$album->id)
-        ->update(
-            [
-                'album_name' => request()->input('albumname'),
-                'album_description' => request()->input('albumdescription')
-            ]
-        );
+        // METODO 1
+        // $res = Album::where('id',$album->id)
+        // ->update(
+        //     [
+        //         'album_name' => request()->input('albumname'),
+        //         'album_description' => request()->input('albumdescription')
+        //     ]
+        // );
+
+        // METODO 2
+        $album = Album::find($album->id);
+        $album->album_name = request()->input('albumname');
+        $album->album_description = request()->input('albumdescription');
+        $res = $album->save();
+
 
         $mess = $res ? 'Album '.$album->id.' updated' : 'Error updating album';
 
@@ -121,7 +137,7 @@ class AlbumController extends Controller
      */
     public function destroy(Album $album)
     {
-        $res = DB::table('albums')->where('id',$album->id)->delete();
+        $res = Album::find($album->id)->delete();
         return $res;
     }
 
