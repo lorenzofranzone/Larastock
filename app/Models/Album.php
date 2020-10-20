@@ -9,6 +9,15 @@ class Album extends Model
 {
     use HasFactory;
 
+    public function getPathAttribute()
+    {
+       $url = $this->album_thumb;
+       if(stristr($this->album_thumb, 'http') === false){
+           $url = 'storage/'.$url;
+       }
+       return $url;
+    }
+
     // METODO 1 NEL CONTROLLER STORE
     // protected $fillable = [
     //     'album_name',

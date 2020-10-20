@@ -19,6 +19,9 @@
                     <li class="list-group-item d-flex justify-content-between">
                         ({{$album->id}}) {{$album->album_name}}
                         <div>
+                            @if($album->album_thumb)
+                            <img class="img-thumbnail" style="width:50px" src="{{asset($album->path)}}" title="{{$album->album_name}}" alt="{{$album->album_name}}">
+                            @endif
                             <a href="/albums/{{$album->id}}/edit" class="btn btn-info">UPDATE</a>
                             <a href="/albums/{{$album->id}}" class="btn btn-danger">DELETE</a>
                         </div>
